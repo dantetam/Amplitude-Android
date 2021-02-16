@@ -50,6 +50,8 @@ android {
         // "pm clear" command after each test invocation. This command ensures
         // that the app's state is completely cleared between tests.
         testInstrumentationRunnerArguments clearPackageData: 'true'
+
+        multiDexEnabled true
     }
 
     lintOptions {
@@ -73,8 +75,8 @@ dependencies {
     testImplementation 'org.powermock:powermock-api-mockito:1.6.6'
     testImplementation 'org.powermock:powermock-classloading-xstream:1.6.6'
     testImplementation 'com.google.android:support-v4:r6'
-    testImplementation 'com.google.android.gms:play-services-ads:18.3.0'
-    testImplementation 'com.google.android.gms:play-services-base:17.1.0'
+    implementation 'androidx.ads:ads-identifier:1.0.0-alpha04'
+    implementation 'com.google.android.gms:play-services-base:17.1.0'
 
     testImplementation "junit:junit:4.12"
 
@@ -87,6 +89,8 @@ dependencies {
 
     // Assertions
     testImplementation 'androidx.test.ext:junit:1.1.1'
+
+    implementation 'com.android.support:multidex:1.0.3'
 }
 
 // ======== For SDK Releases ========
@@ -237,4 +241,41 @@ def getRepositoryUsername() {
 
 def getRepositoryPassword() {
     return hasProperty('sonatypePassword') ? sonatypePassword : ""
+}
+
+project.afterEvaluate {
+    tasks.create("depsize") {
+        listConfigurationDependencies(configurations.default)
+    }
+
+    tasks.create("depsize-all-configurations") {
+        configurations.each {
+            if (it.isCanBeResolved()) {
+                listConfigurationDependencies(it)
+            }
+        }
+    }
+
+}
+
+def listConfigurationDependencies(Configuration configuration) {
+    def formatStr = "%,10.2f"
+
+    def size = configuration.collect { it.length() / (1024 * 1024) }.sum()
+
+    def out = new StringBuffer()
+    out << "\nConfiguration name: \"${configuration.name}\"\n"
+    if (size) {
+        out << 'Total dependencies size:'.padRight(65)
+        out << "${String.format(formatStr, size)} Mb\n\n"
+
+        configuration.sort { -it.length() }
+                .each {
+                    out << "${it.name}".padRight(65)
+                    out << "${String.format(formatStr, (it.length() / 1024))} kb\n"
+                }
+    } else {
+        out << 'No dependencies found';
+    }
+    println(out)
 }

@@ -12,6 +12,9 @@ import android.os.Build;
 import android.provider.Settings.Secure;
 import android.telephony.TelephonyManager;
 
+import androidx.ads.identifier.AdvertisingIdClient;
+import androidx.ads.identifier.AdvertisingIdInfo;
+
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -19,6 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 
 @SuppressWarnings("MissingPermission")
 public class DeviceInfo {
@@ -211,27 +216,18 @@ public class DeviceInfo {
 
         private String getAndCacheGoogleAdvertisingId() {
             try {
-                Class AdvertisingIdClient = Class
-                        .forName("com.google.android.gms.ads.identifier.AdvertisingIdClient");
-                Method getAdvertisingInfo = AdvertisingIdClient.getMethod("getAdvertisingIdInfo",
-                        Context.class);
-                Object advertisingInfo = getAdvertisingInfo.invoke(null, context);
-                Method isLimitAdTrackingEnabled = advertisingInfo.getClass().getMethod(
-                        "isLimitAdTrackingEnabled");
-                Boolean limitAdTrackingEnabled = (Boolean) isLimitAdTrackingEnabled
-                        .invoke(advertisingInfo);
-                this.limitAdTrackingEnabled =
-                        limitAdTrackingEnabled != null && limitAdTrackingEnabled;
-                Method getId = advertisingInfo.getClass().getMethod("getId");
-                advertisingId = (String) getId.invoke(advertisingInfo);
-            } catch (ClassNotFoundException e) {
-                AmplitudeLog.getLogger().w(TAG, "Google Play Services SDK not found!");
-            } catch (InvocationTargetException e) {
-                AmplitudeLog.getLogger().w(TAG, "Google Play Services not available");
-            } catch (Exception e) {
-                AmplitudeLog.getLogger().e(TAG, "Encountered an error connecting to Google Play Services", e);
+                if (AdvertisingIdClient.isAdvertisingIdProviderAvailable(context)) {
+                    AdvertisingIdInfo advertisingInfo = AdvertisingIdClient.getAdvertisingIdInfo(context).get();
+                    this.limitAdTrackingEnabled = advertisingInfo.isLimitAdTrackingEnabled();
+                    this.advertisingId = advertisingInfo.getId();
+                }
+                else
+                    AmplitudeLog.getLogger().w(TAG, "Advertising ID provider not available for device");
+            } catch (ExecutionException e) {
+                AmplitudeLog.getLogger().e(TAG, "Encountered an error connecting to Advertising ID Library 01", e);
+            } catch (InterruptedException e) {
+                AmplitudeLog.getLogger().e(TAG, "Encountered an error connecting to Advertising ID Library 02", e);
             }
-
             return advertisingId;
         }
 
@@ -246,15 +242,15 @@ public class DeviceInfo {
                 // status 0 corresponds to com.google.android.gms.common.ConnectionResult.SUCCESS;
                 return status != null && status.intValue() == 0;
             } catch (NoClassDefFoundError e) {
-                AmplitudeLog.getLogger().w(TAG, "Google Play Services Util not found!");
+                AmplitudeLog.getLogger().w(TAG, "Google Play Services Util not found! Test 03", e);
             } catch (ClassNotFoundException e) {
-                AmplitudeLog.getLogger().w(TAG, "Google Play Services Util not found!");
+                AmplitudeLog.getLogger().w(TAG, "Google Play Services Util not found! Test 004", e);
             } catch (NoSuchMethodException e) {
-                AmplitudeLog.getLogger().w(TAG, "Google Play Services not available");
+                AmplitudeLog.getLogger().w(TAG, "Google Play Services not available Test 05", e);
             } catch (InvocationTargetException e) {
-                AmplitudeLog.getLogger().w(TAG, "Google Play Services not available");
+                AmplitudeLog.getLogger().w(TAG, "Google Play Services not available Test 06", e);
             } catch (IllegalAccessException e) {
-                AmplitudeLog.getLogger().w(TAG, "Google Play Services not available");
+                AmplitudeLog.getLogger().w(TAG, "Google Play Services not available Test 07", e);
             } catch (Exception e) {
                 AmplitudeLog.getLogger().w(TAG,
                         "Error when checking for Google Play Services: " + e);

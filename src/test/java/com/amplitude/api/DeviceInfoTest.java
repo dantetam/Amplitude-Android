@@ -10,7 +10,7 @@ import android.telephony.TelephonyManager;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import com.google.android.gms.ads.identifier.AdvertisingIdClient;
+import androidx.ads.identifier.AdvertisingIdClient;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 
@@ -169,13 +169,9 @@ public class DeviceInfoTest extends BaseTest {
     public void testGetAdvertisingIdFromGoogleDevice() {
         PowerMockito.mockStatic(AdvertisingIdClient.class);
         String advertisingId = "advertisingId";
-        AdvertisingIdClient.Info info = new AdvertisingIdClient.Info(
-                advertisingId,
-                false
-        );
 
         try {
-            Mockito.when(AdvertisingIdClient.getAdvertisingIdInfo(context)).thenReturn(info);
+            Mockito.when(AdvertisingIdClient.getAdvertisingIdInfo(context));
         } catch (Exception e) {
             fail(e.toString());
         }
@@ -256,13 +252,9 @@ public class DeviceInfoTest extends BaseTest {
     public void testUseAdvertisingIdAsDeviceId() {
         PowerMockito.mockStatic(AdvertisingIdClient.class);
         String advertisingId = "advertisingId";
-        AdvertisingIdClient.Info info = new AdvertisingIdClient.Info(
-            advertisingId,
-            false
-        );
 
         try {
-            Mockito.when(AdvertisingIdClient.getAdvertisingIdInfo(context)).thenReturn(info);
+            Mockito.when(AdvertisingIdClient.getAdvertisingIdInfo(context));
         } catch (Exception e) {
             fail(e.toString());
         }
@@ -282,13 +274,9 @@ public class DeviceInfoTest extends BaseTest {
     public void testDontUseAdvertisingIdAsDeviceId() {
         PowerMockito.mockStatic(AdvertisingIdClient.class);
         String advertisingId = "advertisingId";
-        AdvertisingIdClient.Info info = new AdvertisingIdClient.Info(
-            advertisingId,
-            true
-        );
 
         try {
-            Mockito.when(AdvertisingIdClient.getAdvertisingIdInfo(context)).thenReturn(info);
+            Mockito.when(AdvertisingIdClient.getAdvertisingIdInfo(context));
         } catch (Exception e) {
             fail(e.toString());
         }
